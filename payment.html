@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment</title>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+    <h1>Proceed to Payment</h1>
+    <h3>Your Total: ${{ total_price }}</h3>
+
+    <form action="/payment" method="post" id="payment-form">
+        <input type="hidden" name="total_price" value="{{ total_price }}">
+        <input type="hidden" name="coffee_ids" value="{{ coffee_ids }}">
+        
+        <div id="card-element"></div> <!-- A Stripe Element will be inserted here. -->
+        
+        <button type="submit" id="submit">Pay</button>
+    </form>
+
+    <script>
+        var stripe = Stripe('your_stripe_publishable_key_here');
+        var elements = stripe.elements();
+        
+        var card = elements.create('card');
+        card.mount('#card-element');
+        
+        var form = document.getElementById('payment-form');
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            
+            const { token, error } = await stripe.createToken(card);
+            
+            if (error) {
+                console.log(error.message);
+            } else {
+                var hiddenToken = document.createElement('input');
+                hiddenToken.setAttribute('type', 'hidden');
+                hiddenToken.setAttribute('name', 'stripeToken');
+                hiddenToken.setAttribute('value', token.id);
+                form.appendChild(hiddenToken);
+                
+                form.submit();
+            }
+        });
+    </script>
+</body>
+</html>
